@@ -1,5 +1,5 @@
 import React from 'react'
-import { withRouter } from 'react-router-dom'
+import { withRouter, NavLink } from 'react-router-dom'
 import { Query, Mutation, withApollo } from 'react-apollo'
 import { gql } from 'apollo-boost'
 import { ROOT_QUERY } from './App'
@@ -17,6 +17,7 @@ const CurrentUser = ({ name, avatar, logout }) => (
     <img src={avatar} width={48} height={48} alt="" />
     <h1>{name}</h1>
     <button onClick={logout}>Logout</button>
+    <NavLink to="/newPhoto">Post Photo</NavLink>
   </div>
 )
 
@@ -62,18 +63,31 @@ class AuthorizedUser extends React.Component {
 
   render() {
     return (
-      <Mutation
-        mutation={GITHUB_AUTH_MUTATION}
-        update={this.authorizationComplete}
-        refetchQueries={[{ query: ROOT_QUERY }]}
-        >
-        {mutation => {
-          this.githubAuthMutation = mutation
-          return (
-            <Me signingIn={this.state.signingIn} requestCode={this.requestCode} logout={this.logout} />
-          )
-        }}
-      </Mutation>
+      <Query query={ROOT_QUERY}>
+        {({ loading, data }) => data.me
+        ? (
+          <div>
+            <img src={data.me.avatar_url} width={48} height={48} alt="" />
+            <h1>{data.me.name}</h1>
+            <button onClick={this.logout}>Logout</button>
+            <NavLink to="/newPhoto">Post Photo</NavLink>
+          </div>
+        ) : (
+          <Mutation
+            mutation={GITHUB_AUTH_MUTATION}
+            update={this.authorizationComplete}
+            refetchQueries={[{ query: ROOT_QUERY }]}
+            >
+            {mutation => {
+              this.githubAuthMutation = mutation
+              return (
+                <Me signingIn={this.state.signingIn} requestCode={this.requestCode} logout={this.logout} />
+              )
+            }}
+          </Mutation>
+        )
+        }
+      </Query>
     )
   }
 }
